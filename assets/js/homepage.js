@@ -1,19 +1,9 @@
 var userFormEl = document.querySelector("#user-form");
+var languageButtonsEl = document.querySelector("#language-buttons");
 var nameInputEl = document.querySelector("#username");
 var repoContainerEl = document.querySelector("#repos-container");
 var repoSearchTerm = document.querySelector("#repo-search-term");
 
-var getUserRepos = function (user) {
-  // format the github api url
-  var apiUrl = "https://api.github.com/users/" + user + "/repos";
-
-  // make a request to the url
-  fetch(apiUrl).then(function (response) {
-    response.json().then(function (data) {
-      displayRepos(data, user);
-    });
-  });
-};
 var formSubmitHandler = function (event) {
   var username = nameInputEl.value.trim();
 
@@ -28,7 +18,47 @@ var formSubmitHandler = function (event) {
   console.log(event);
 };
 
-// clear old content
+var buttonClickHandler = function (event) {
+  // get the language attribute from the clicked element
+  var language = event.target.getAttribute("data-language");
+
+  if (language) {
+    getFeaturedRepos(language);
+
+    // clear old content
+    repoContainerEl.textContent = "";
+  }
+};
+
+var getUserRepos = function (user) {
+  // format the github api url
+  var apiUrl = "https://api.github.com/users/" + user + "/repos";
+
+  // make a request to the url
+  fetch(apiUrl).then(function (response) {
+    response.json().then(function (data) {
+      displayRepos(data, user);
+    });
+  });
+};
+
+var getFeaturedRepos = function (language) {
+  var apiUrl =
+    "https://api.github.com/search/repositories?q=" +
+    language +
+    "+is:featured&sort=help-wanted-issues";
+
+  fetch(apiUrl).then(function (response) {
+    if (response.ok) {
+      response.json().then(function (data) {
+        displayRepos(data.items, language);
+      });
+    } else {
+      alert("Error: GitHub User Not Found");
+    }
+  });
+};
+
 var displayRepos = function (repos, searchTerm) {
   repoContainerEl.textContent = "";
   repoSearchTerm.textContent = searchTerm;
@@ -75,3 +105,4 @@ var displayRepos = function (repos, searchTerm) {
 };
 
 userFormEl.addEventListener("submit", formSubmitHandler);
+languageButtonsEl.addEventListener("click", buttonClickHandler);
